@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+   body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 65%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .group-container, .post-container, .post-form-container, .login-container {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .group-container {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .group-image {
+      width: 110px;
+      height: 110px;
+      border-radius: 20%;
+      margin-right: 10px;
+    }
+    .post-container {
+      margin-bottom: 10px;
+    }
+    .post-content {
+      margin: 5px 0;
+    }
+    .login-container {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .login-container input, .login-container button {
+      margin-top: 10px;
+    }
+    .post-form-container {
+      margin-bottom: 20px;
+    }
+    #profileContainer {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #profileAvatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: block;
+      margin: 0 auto;
+    }
+    #groupsContainer, #groupContentContainer {
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .button-container {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 10px;
+    }
+    .button-container button {
+      flex-grow: 1;
+      margin: 0 5px;
+    }
+    #notificationContainer {
+  display: inline-block;
+  position: relative;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
+#notificationCount {
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 5px 10px;
+  font-size: 14px;
+}
+
+#notificationList {
+  position: absolute;
+  top: 30px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  width: 200px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+}
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+  background: #000;
+}
+
+.video-container iframe,
+.video-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+ .reactions {
+      margin-top: 10px;
+    }
+    .reaction-button {
+      border: none;
+      background: none;
+      font-size: 20px;
+      cursor: pointer;
+      margin-right: 5px;
+      position: relative;
+    }
+    .reaction-button:hover .tooltip {
+      display: block;
+    }
+    .tooltip {
+      display: none;
+      position: absolute;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 5px;
+      padding: 5px;
+      z-index: 1;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="posts"></div>
+  <div class="container">
+    <div class="login-container" id="loginContainer">
+      <h2>Zaloguj się</h2>
+      <input type="text" id="username" placeholder="Nazwa użytkownika"><br>
+      <input type="password" id="password" placeholder="Hasło"><br>
+      <button onclick="login()">Zaloguj się</button>
+    </div>
+
+    <div id="profileContainer" class="hidden">
+  <h2>Witaj, <span id="profileUsername"></span></h2>
+  <img id="profileAvatar" src="" alt="Avatar">
+  <button onclick="logout()">Wyloguj się</button>
+  <div id="notificationContainer">
+    <span id="notificationCount" onclick="showNotifications()"></span>
+    <div id="notificationList" class="hidden"></div>
+  </div>
+</div>
+
+
+    <div class="hidden" id="createGroupContainer">
+      <h2>Stwórz grupę</h2>
+      <input type="text" id="groupName" placeholder="Nazwa grupy"><br>
+      <input type="text" id="groupImageUrl" placeholder="URL zdjęcia grupy"><br>
+      <button onclick="createGroup()">Stwórz grupę</button>
+    </div>
+
+     <div id="groupButtons" class="hidden">
+      <button onclick="showAllGroups()">Wszystkie grupy</button>
+      <button onclick="showMyGroups()">Moje grupy</button>
+    </div>
+
+    <div id="groupsContainer"></div>
+    
+
+    <div id="groupContentContainer" class="hidden">
+      <h2><span id="selectedGroupName"></span></h2>
+      <img id="selectedGroupImage" src="" alt="Group Image" class="group-image"><br><br>
+      <p><strong>Administrator:</strong> <span id="groupOwner"></span></p>
+    <p><strong></strong> <span id="groupAdmins"></span></p>
+  </div>
+      <button id="backButton" class="hidden" onclick="backToGroups()">Powrót do grup</button>
+      <button id="joinButton" class="hidden" onclick="joinGroup()">Dołącz</button>
+      <div id="postFormContainer" class="hidden post-form-container">
+        <label for="postContent">Treść posta:</label>
+        <textarea id="postContent" rows="3" placeholder="Napisz coś..."></textarea>
+        <div class="button-container">
+          <button onclick="addPostToGroup()">Wyślij 🗨️</button>
+          <button onclick="addImagePost()">Zdjęcie 📷</button>
+          <button onclick="addLink()">Link 🔗</button>
+          <button onclick="addTweet()">Tweet 💬</button>
+          <button onclick="addGif()">GIF 🎥</button>
+        </div>
+      </div>
+      <div id="postsContainer"></div>
+    </div>
+  </div>
+
+  <script>
+    var currentUser = null;
+var currentGroup = null;
+var allGroups = [];
+
+document.addEventListener("DOMContentLoaded", function () {
+  var savedUser = localStorage.getItem('currentUser21');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    showProfile(currentUser); // Ensure the profile is shown if the user is found
+  }
+});
+
+function login() {
+  var username = document.getElementById("username").value;
+  var password = document.getElementById("password").value;
+  google.script.run.withSuccessHandler(function(user) {
+    if (user) {
+      saveCurrentUser(user);
+      currentUser = user;
+      
+      showProfile(user); // Call showProfile after login
+
+    } else {
+      alert("Nieprawidłowa nazwa użytkownika lub hasło.");
+    }
+  }).login(username, password);
+}
+function checkAccountStatus() {
+  google.script.run.withSuccessHandler(function(isClosed) {
+    if (isClosed) {
+      window.location.href = 'https://info1502.github.io/Chess-Milosz-home/'; // Adjust the path if needed
+    }
+  }).isAccountClosed(currentUser.username);
+}
+
+window.onload = function() {
+  checkAccountStatus();
+};
+function isAccountClosed(username) {
+  google.script.run.withSuccessHandler(function(isClosed) {
+    if (isClosed) {
+      window.location.href = 'https://info1502.github.io/Chess-Milosz-home/'; // Adjust the path if needed
+    }
+  }).isAccountClosed(username);
+}
+
+
+function saveCurrentUser(user) {
+  localStorage.setItem('currentUser21', JSON.stringify(user));
+}
+
+function logout() {
+  currentUser = null;
+  currentGroup = null;
+  localStorage.removeItem('currentUser21');
+  document.getElementById("loginContainer").classList.remove("hidden");
+  document.getElementById("profileContainer").classList.add("hidden");
+  document.getElementById("createGroupContainer").classList.add("hidden");
+  document.getElementById("groupButtons").classList.add("hidden");
+  document.getElementById("groupsContainer").innerHTML = "";
+  document.getElementById("groupContentContainer").classList.add("hidden");
+  document.getElementById("postsContainer").innerHTML = "";
+}
+
+function showProfile(user) {
+  document.getElementById("loginContainer").classList.add("hidden");
+  document.getElementById("profileContainer").classList.remove("hidden");
+  document.getElementById("profileUsername").textContent = user.username;
+  document.getElementById("profileAvatar").src = user.avatar;
+  document.getElementById("createGroupContainer").classList.remove("hidden");
+  document.getElementById("groupButtons").classList.remove("hidden");
+  loadGroups();
+  loadUserNotifications();
+}
+
+function loadUserNotifications() {
+  google.script.run.withSuccessHandler(function(notifications) {
+    var notificationCount = document.getElementById("notificationCount");
+    var notificationList = document.getElementById("notificationList");
+    notificationCount.textContent = notifications.length;
+    notificationList.innerHTML = "";
+
+    notifications.forEach(function(notification) {
+      var notificationItem = document.createElement("div");
+      notificationItem.textContent = "Grupa: " + notification.group + " - " + notification.content + " (" + notification.time + ")";
+      notificationList.appendChild(notificationItem);
+    });
+  }).getUserNotifications(currentUser.username);
+}
+
+function showNotifications() {
+  var notificationList = document.getElementById("notificationList");
+  if (notificationList.classList.contains("hidden")) {
+    notificationList.classList.remove("hidden");
+  } else {
+    notificationList.classList.add("hidden");
+    google.script.run.clearUserNotifications(currentUser.username);
+    document.getElementById("notificationCount").textContent = "0";
+  }
+}
+
+
+
+     function createGroup() {
+      var groupName = document.getElementById("groupName").value;
+      var groupImageUrl = document.getElementById("groupImageUrl").value;
+      var creator = currentUser.username; 
+      google.script.run.withSuccessHandler(loadGroups).createGroup(groupName, groupImageUrl, creator);
+    }
+
+    function loadGroups() {
+      google.script.run.withSuccessHandler(function(groups) {
+        allGroups = groups;
+        showAllGroups();
+      }).getGroups();
+    }
+
+    function showAllGroups() {
+      renderGroups(allGroups);
+    }
+
+    function showMyGroups() {
+      var myGroups = allGroups.filter(group => {
+        return group.members && group.members.includes(currentUser.username);
+      });
+      renderGroups(myGroups);
+    }
+
+    function renderGroups(groups) {
+      var groupsContainer = document.getElementById("groupsContainer");
+      groupsContainer.innerHTML = "";
+
+      groups.forEach(function(group) {
+        var groupContainer = document.createElement("div");
+        groupContainer.className = "group-container";
+        
+        var groupImage = document.createElement("img");
+        groupImage.className = "group-image";
+        groupImage.src = group.imageUrl;
+
+        var groupName = document.createElement("span");
+        groupName.textContent = group.name;
+
+        groupContainer.appendChild(groupImage);
+        groupContainer.appendChild(groupName);
+        groupContainer.addEventListener("click", function() {
+          selectGroup(group);
+        });
+        groupsContainer.appendChild(groupContainer);
+      });
+    }
+
+
+      function selectGroup(group) {
+  currentGroup = group.name;
+  document.getElementById("groupsContainer").classList.add("hidden");
+  document.getElementById("createGroupContainer").classList.add("hidden");
+  document.getElementById("groupButtons").classList.add("hidden");
+  document.getElementById("groupContentContainer").classList.remove("hidden");
+  document.getElementById("backButton").classList.remove("hidden");
+  document.getElementById("selectedGroupName").textContent = group.name;
+  document.getElementById("selectedGroupImage").src = group.imageUrl;
+
+  // Ustaw informacje o właścicielu i adminach
+  document.getElementById("groupOwner").textContent = group.owner || "Brak administratora";
+  document.getElementById("groupOwner").textContent = group.owner || "Brak koordynatora";
+
+  google.script.run.withSuccessHandler(function(isInGroup) {
+    if (isInGroup) {
+      document.getElementById("joinButton").classList.add("hidden");
+      document.getElementById("postFormContainer").classList.remove("hidden");
+      loadGroupPosts(group.name);
+    } else {
+      document.getElementById("joinButton").classList.remove("hidden");
+      document.getElementById("postFormContainer").classList.add("hidden");
+      document.getElementById("postsContainer").innerHTML = "";
+    }
+  }).isUserInGroup(group.name, currentUser.username);
+}
+
+    function joinGroup() {
+      google.script.run.withSuccessHandler(function() {
+        document.getElementById("joinButton").classList.add("hidden");
+        document.getElementById("postFormContainer").classList.remove("hidden");
+        loadGroupPosts(currentGroup);
+      }).joinGroup(currentGroup, currentUser.username);
+    }
+
+     function loadGroupPosts(groupName) {
+      google.script.run.withSuccessHandler(function(posts) {
+        var postsContainer = document.getElementById("postsContainer");
+        postsContainer.innerHTML = "";
+        posts.reverse(); // Odwróć kolejność postów
+
+        posts.forEach(function(post, index) {
+          var postContainer = document.createElement("div");
+          postContainer.className = "post-container";
+          
+          var postContent = document.createElement("div");
+          postContent.className = "post-content";
+
+          var usernameWithSymbols = post.username;
+
+          if (post.username === "Che947" || post.username === "Agent007") {
+            usernameWithSymbols += " 🔨🔑✅📝";
+          } else if (post.username === "Józef") {
+            usernameWithSymbols += " ✅📝";
+          } else if (post.username === "Dominik") {
+            usernameWithSymbols += " 🔑✅📝";
+          }
+
+          postContent.innerHTML = "<strong>" + usernameWithSymbols + "</strong>: " + post.content + 
+                                  "<span style='color: #999; font-size: 12px; margin-left: 10px;'>(" + post.time + ")</span>";
+          
+          postContainer.appendChild(postContent);
+
+          // Dodaj reakcje
+          var reactionsContainer = document.createElement("div");
+          reactionsContainer.className = "reactions";
+
+          var emojis = ['😂', '😎', '😍', '😥'];
+          emojis.forEach(function(emoji) {
+            var reactionButton = document.createElement("button");
+            reactionButton.className = "reaction-button";
+            reactionButton.textContent = emoji + " " + (post.reactions[emoji].length || 0);
+            reactionButton.onclick = function() {
+              addReactionToPost(groupName, post.id, emoji);
+            };
+
+            var tooltip = document.createElement("span");
+            tooltip.className = "tooltip";
+            tooltip.textContent = post.reactions[emoji].join(", ");
+            reactionButton.appendChild(tooltip);
+
+            reactionsContainer.appendChild(reactionButton);
+          });
+
+          postContainer.appendChild(reactionsContainer);
+
+          postsContainer.appendChild(postContainer);
+        });
+
+        loadTwitterScript();
+      }).getGroupPosts(groupName);
+    }
+
+    function addReactionToPost(groupName, postId, emoji) {
+      google.script.run.withSuccessHandler(function() {
+        loadGroupPosts(groupName); // Odśwież posty po dodaniu reakcji
+      }).addReactionToPost(groupName, postId, emoji, currentUser.username);
+    }
+function backToGroups() {
+
+ // Ukrywanie szczegółów grupy, formularza postów i postów
+  document.getElementById("groupContentContainer").classList.add("hidden");  // Ukrywa szczegóły grupy
+  document.getElementById("backButton").classList.add("hidden");  // Ukrywa przycisk "Powrót"
+  document.getElementById("postFormContainer").classList.add("hidden");  // Ukrywa formularz do postów
+  document.getElementById("postsContainer").classList.add("hidden");  // Ukrywa listę postów
+
+  // Pokazywanie listy grup i przycisków grup
+  document.getElementById("groupsContainer").classList.remove("hidden");  // Pokazuje listę grup
+  document.getElementById("createGroupContainer").classList.remove("hidden");  // Pokazuje formularz tworzenia grupy
+  document.getElementById("groupButtons").classList.remove("hidden");  // Pokazuje przyciski grupy
+
+  // Przywracanie przycisku dołączania do grupy (jeśli był ukryty)
+  document.getElementById("joinButton").classList.remove("hidden");  // Przywrócenie widoczności przycisku "Dołącz"
+
+  // Czyszczenie zawartości postów, aby nie pozostały widoczne
+  document.getElementById("postsContainer").innerHTML = "";  // Usuwa wszystkie posty
+}
+
+
+    function addPostToGroup() {
+      var postContent = document.getElementById("postContent").value;
+      var username = currentUser.username;
+      google.script.run.withSuccessHandler(function() {
+        loadGroupPosts(currentGroup);
+      }).addPostToGroup(currentGroup, username, postContent);
+    }
+
+    
+    function addImagePost() {
+      var imageUrl = prompt("Wprowadź URL zdjęcia:");
+      if (imageUrl) {
+        var textarea = document.getElementById("postContent");
+        textarea.value += '<img src="' + imageUrl + '" alt="User Image" style="max-width: 100%;">';
+      }
+    }
+
+    function addLink() {
+  var textarea = document.getElementById("postContent");
+  var linkUrl = prompt("Wprowadź URL linku:");
+
+  if (linkUrl !== null && linkUrl !== "") {
+    var textBefore = textarea.value.substring(0, textarea.selectionStart);
+    var selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    var textAfter = textarea.value.substring(textarea.selectionEnd);
+
+    var newText;
+    if (linkUrl.includes("youtube.com/shorts/")) {
+      var videoId = linkUrl.split("/").pop();
+      newText = textBefore + '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '" frameborder="0" allowfullscreen></iframe></div>' + textAfter;
+    } else if (linkUrl.includes("youtube.com/watch")) {
+      var videoId = linkUrl.split("v=")[1];
+      var ampersandPosition = videoId.indexOf("&");
+      if (ampersandPosition !== -1) {
+        videoId = videoId.substring(0, ampersandPosition);
+      }
+      newText = textBefore + '<div class="video-container"><iframe src="https://www.youtube.com/embed/' + videoId + '" frameborder="0" allowfullscreen></iframe></div>' + textAfter;
+    } else if (linkUrl.includes("vimeo.com")) {
+      var videoId = linkUrl.split("/").pop();
+      newText = textBefore + '<div class="video-container"><iframe src="https://player.vimeo.com/video/' + videoId + '" frameborder="0" allowfullscreen></iframe></div>' + textAfter;
+    } else {
+      var videoFormats = ["mp4", "avi", "mkv", "mov"];
+      var isVideo = videoFormats.some(format => linkUrl.includes(format));
+
+      if (isVideo) {
+        newText = textBefore + '<div class="video-container"><video src="' + linkUrl + '" controls></video></div>' + textAfter;
+      } else {
+         newText = textBefore + '[link]' + linkUrl + '[/link]' + textAfter;
+      }
+    }
+
+    textarea.value = newText;
+  }
+}
+
+
+function addBoldText() {
+      var textarea = document.getElementById("postContent");
+      var textBefore = textarea.value.substring(0, textarea.selectionStart);
+      var selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+      var textAfter = textarea.value.substring(textarea.selectionEnd);
+
+      var newText = textBefore + "*" + selectedText + "*" + textAfter;
+      textarea.value = newText;
+    }
+
+    function addTweet() {
+      var tweetUrl = prompt("Wprowadź URL tweeta:");
+      if (tweetUrl) {
+        var textarea = document.getElementById("postContent");
+        textarea.value += '<blockquote class="twitter-tweet"><a href="' + tweetUrl + '"></a></blockquote>';
+        loadTwitterScript();
+      }
+    }
+
+    function addGif() {
+      var gifUrl = prompt("Wprowadź URL GIF-a:");
+      if (gifUrl) {
+        var textarea = document.getElementById("postContent");
+        textarea.value += '<img src="' + gifUrl + '" alt="User GIF" style="max-width: 100%;">';
+      }
+    }
+
+    function loadTwitterScript() {
+      var script = document.createElement('script');
+      script.setAttribute('src', 'https://platform.twitter.com/widgets.js');
+      script.setAttribute('async', 'true');
+      document.head.appendChild(script);
+    }
+    
+  </script>
+</body>
+</html>
